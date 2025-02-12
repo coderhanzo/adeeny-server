@@ -23,7 +23,7 @@ import requests
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from .serializers import UserSerializer, CreateUserSerializer
+from .serializers import UserSerializer, CreateUserSerializer, UpdateProfileSerializer
 from djoser.serializers import SetPasswordRetypeSerializer
 from djoser.compat import get_user_email
 from .serializers import TokenRefreshSerializer
@@ -139,6 +139,30 @@ def verify_otp_view(request):
 
     return Response({"detail": "Invalid OTP code"}, status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def request_new_otp_view(request):
+    email = request.data.get("email")
+
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    # Generate a new OTP code
+    user.generate_otp_code()
+    user.save()
+
+    # Send the new OTP code to the user's email
+    send_mail(
+        "Your New OTP Code",
+        f"Dear User, your new OTP code is {user.otp_code}",
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email],
+    )
+
+    return Response({"detail": "New OTP code sent successfully"}, status=status.HTTP_200_OK)
+
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
@@ -217,6 +241,16 @@ def delete_user(request, id):
             {"message": "User deleted successfully"}, status=status.HTTP_204_NO_CONTENT
         )
 
+class UpdateProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def patch(self, request, *args, **kwargs):
+        user = request.user
+        serializer = UpdateProfileSerializer(user, data=request.data, partial=True)  # Allow partial updates
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -258,6 +292,38 @@ class SetPassword(APIView):
             update_session_auth_hash(self.request, self.request.user)
         return Response({"status": 200}, status=status.HTTP_200_OK)
 
+
+# class ResetPassword(generics.GenericAPIView):
+#     # serializer_class = ResetPasswordSerializer
+#     permission_classes = []
+
+#     def post(self, request, token):
+#         serializer = self.serializer_class(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+#         data = serializer.validated_data
+        
+#         new_password = data['new_password']
+#         confirm_password = data['confirm_password']
+        
+#         if new_password != confirm_password:
+#             return Response({"error": "Passwords do not match"}, status=400)
+        
+#         reset_obj = User.objects.filter(token=token).first()
+        
+#         if not reset_obj:
+#             return Response({'error':'Invalid token'}, status=400)
+        
+#         user = User.objects.filter(email=reset_obj.email).first()
+        
+#         if user:
+#             user.set_password(request.data['new_password'])
+#             user.save()
+            
+#             reset_obj.delete()
+            
+#             return Response({'success':'Password updated'})
+#         else: 
+#             return Response({'error':'No user found'}, status=404)
 
 @api_view(["POST"])
 @transaction.atomic

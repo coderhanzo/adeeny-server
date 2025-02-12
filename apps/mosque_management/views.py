@@ -7,6 +7,7 @@ from rest_framework.decorators import (
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework import authentication, permissions
 from rest_framework_simplejwt.authentication import (
@@ -94,13 +95,28 @@ def delete_announcement(request, id):
 
 
 # creating sermons
-@api_view(["POST"])
-def upload_sermons(request):
-    if "file" not in request.FILES:
-        return Response({"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST)
+class SermonView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = SermonSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def patch(self, request, id, *args, **kwargs):
+        try:
+            sermon = Sermon.objects.get(id=id)  # Get the sermon instance by ID
+        except Sermon.DoesNotExist:
+            return Response(
+                {"detail": "Sermon not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
-    file = request.FILES["file"]
-    return Response({"message": "File uploaded successfully", "file_name": file.name}, status=status.HTTP_200_OK)
+        # Allow partial updates
+        serializer = SermonSerializer(sermon, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(["GET"])
 def get_all_sermons(request):
@@ -109,14 +125,14 @@ def get_all_sermons(request):
     return Response(serialize.data, status=status.HTTP_200_OK)
 
 
+# @api_view(["DELETE"])
+# def delete_sermon(request, id):
+#     sermon = Sermon.objects.get(id=id)
+#     sermon.delete()
+#     return Response({"message":""},status=status.HTTP_204_NO_CONTENT)
+
 @api_view(["DELETE"])
 def delete_sermon(request, id):
-    sermon = Sermon.objects.get(id=id)
-    sermon.delete()
-    return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-def delete_user(request, id):
     try:
         sermon = Sermon.objects.get(id=id)
     except Sermon.DoesNotExist:
@@ -127,3 +143,37 @@ def delete_user(request, id):
     return Response(
         {"message": "Sermon deleted successfully"}, status=status.HTTP_204_NO_CONTENT
     )
+
+
+class LikeMosqueView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, mosque_id, *args, **kwargs):
+        try:
+            mosque = Mosque.objects.get(pk=mosque_id)
+        except Mosque.DoesNotExist:
+            return Response(
+                {"detail": "Mosque not found"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        user = request.user
+
+        # Toggle like status
+        if mosque.liked_by.filter(id=user.id).exists():
+            mosque.liked_by.remove(user)  # Unlike the mosque
+            message = "Mosque unliked successfully."
+        else:
+            mosque.liked_by.add(user)  # Like the mosque
+            message = "Mosque liked successfully."
+
+        return Response({"detail": message}, status=status.HTTP_200_OK)
+
+
+class FavouritedMosquesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        favourited_mosques = user.favourite_mosques.all()  # Retrieve all favourited mosques
+        serializer = MosqueSerializer(favourited_mosques, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

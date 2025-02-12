@@ -93,6 +93,7 @@ DJANGO_APPS = [
 
 THIRD_PARTY_APPS = [
     "rest_framework",
+    "rest_framework_simplejwt",
     "djoser",
     "phonenumber_field",
     "rest_framework_gis",
@@ -319,3 +320,9 @@ APIKEY = env("PEOPLES_PAY_API_KEY")
 
 
 PHONENUMBER_DEFAULT_REGION = "GH"
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+}

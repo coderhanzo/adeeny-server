@@ -1,12 +1,14 @@
 from django.db import models
+from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from django.contrib.gis.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
+User = get_user_model()
 
 # Create your models here.
 def upload_to(instance, filename):
-    return "mosque_pictures/{filename}".format(filename=filename)
+    return "mosque_documents/{filename}".format(filename=filename)
 
 
 class Mosque(models.Model):
@@ -31,20 +33,24 @@ class Mosque(models.Model):
     long = models.FloatField(verbose_name=_("Longitude"), blank=True, null=True)
 
     image = models.ImageField(
-        upload_to=upload_to,
+        upload_to="mosques/image/",
         verbose_name=_("Mosque Image"),
         blank=True,
         null=True,
     )
-    certificate = models.FileField(upload_to=upload_to, blank=True, null=True, verbose_name=_("Certificate"))
+    certificate = models.FileField(upload_to="mosques/certificates/", blank=True, null=True, verbose_name=_("Certificate"))
 
     additional_info = models.TextField(
         verbose_name=_("Additional Content"), blank=True, null=True
     )
-    is_liked = models.BooleanField(default=False)
+    liked_by = models.ManyToManyField(User, related_name="liked_mosques", blank=True)
 
     def __str__(self):
         return self.name
+
+     # Property to check if the current user has liked the mosque
+    def is_liked_by_user(self, user):
+        return self.liked_by.filter(id=user.id).exists()
 
 
 class PrayerTime(models.Model):
@@ -74,7 +80,7 @@ class Sermon(models.Model):
     )
     docs = models.FileField(upload_to=upload_to, blank=True, null=True)
     audio = models.FileField(upload_to=upload_to, blank=True, null=True)
-    video = models.FileField(upload_to=upload_to, blank=True, null=True)
+    video = models.URLField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
