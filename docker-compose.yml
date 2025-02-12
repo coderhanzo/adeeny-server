@@ -1,0 +1,64 @@
+services:
+  mysql-db:
+    container_name: Adeeny-db
+    image: mysql:8.0
+    restart: always
+    volumes:
+      - mysql_data:/var/lib/mysql
+    env_file:
+      - .env
+    environment:
+      - MYSQL_DATABASE=${MYSQL_NAME}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_HOST=${MYSQL_HOST}
+    ports:
+      - "3307:3306"
+    networks:
+      - adeeny-network
+
+# backend
+  adeeny-backend:
+    container_name: Adeeny-backend
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    command: ./wait-for-it.sh mysql-db:3306 -- gunicorn config.wsgi:application --bind 0.0.0.0:8000
+    # command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
+    # command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/mediafiles
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mysql-db
+    networks:
+      - adeeny-network
+
+# dashboard frontend
+  dashboard:
+    container_name: Adeeny-Dashboard
+    build:
+      context: .
+      dockerfile: ./adeeny-dashboard/Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - adeeny-backend
+      - mysql-db
+    networks:
+      - adeeny-network
+
+networks:
+  adeeny-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  static_volume:
+  media_volume:
