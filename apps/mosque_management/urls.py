@@ -20,5 +20,5 @@ urlpatterns = [
     path("get-sermons/", views.get_all_sermons, name="get_sermons"),
     path("delete-sermon/<int:id>", views.delete_sermon, name="delete_sermon"),
     path('mosques/<int:id>/like/', views.LikeMosqueView.as_view(), name='like-mosque'),
-    path('mosques/liked/', views.LikedMosquesView.as_view(), name='liked-mosques'),
+    path('mosques/liked/', views.FavouritedMosquesView.as_view(), name='liked-mosques'),
 ]

@@ -10,6 +10,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework import authentication, permissions
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework_simplejwt.authentication import (
     JWTAuthentication,
     JWTStatelessUserAuthentication,
@@ -148,9 +149,9 @@ def delete_sermon(request, id):
 class LikeMosqueView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, mosque_id, *args, **kwargs):
+    def post(self, request, id, *args, **kwargs):
         try:
-            mosque = Mosque.objects.get(pk=mosque_id)
+            mosque = Mosque.objects.get(id=id)
         except Mosque.DoesNotExist:
             return Response(
                 {"detail": "Mosque not found"}, status=status.HTTP_404_NOT_FOUND
@@ -169,11 +170,28 @@ class LikeMosqueView(APIView):
         return Response({"detail": message}, status=status.HTTP_200_OK)
 
 
+
 class FavouritedMosquesView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        user = request.user
-        favourited_mosques = user.favourite_mosques.all()  # Retrieve all favourited mosques
-        serializer = MosqueSerializer(favourited_mosques, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        try:
+            user = request.user
+            # Retrieve all mosques liked by the user using the related_name 'liked_mosques'
+            liked_mosques = user.liked_mosques.all()
+            serializer = MosqueSerializer(liked_mosques, many=True, context={'request': request})
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except ObjectDoesNotExist:
+            # Handle the case where the user or related objects do not exist
+            return Response(
+                {"detail": "User or related data not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        except Exception as e:
+            # Handle any other unexpected errors
+            return Response(
+                {"detail": f"An error occurred: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

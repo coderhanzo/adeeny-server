@@ -62,7 +62,8 @@ def refresh_token_view(request):
 
 
 @api_view(["POST"])
-@permission_classes([AllowAny])
+# @permission_classes([AllowAny])
+@authentication_classes([JWTAuthentication])
 def login_view(request):
     """Login view for local authentication"""
     email = request.data.get("email")
@@ -92,6 +93,7 @@ def login_view(request):
             response = Response(
                 {
                     "access": str(token.access_token),
+                    "somemessage":user.email
                 }
             )
             response.set_cookie(
