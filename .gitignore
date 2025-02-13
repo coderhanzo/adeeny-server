@@ -8,6 +8,10 @@ commands.md
 # testing
 /coverage
 
+.python-version
+pyproject.toml
+uv.lock
+
 # next.js
 /.next/
 /out/
