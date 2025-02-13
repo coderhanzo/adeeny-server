@@ -238,10 +238,7 @@ class PaymentCallbackAPIView(APIView):
         # payment_success = True if payment_success in [True, "true", "True"] else False
 
         # Find the collection related to this transaction using transaction_id
-        """
-        trying to use a for statement to get the payment status and then 
-        update the status of the objects id provide
-        """
+
         try:
             collection = Collections.objects.get(transaction_id=transaction_id)
             print(collection, f"collection data")

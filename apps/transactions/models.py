@@ -45,6 +45,9 @@ class Collections(models.Model):
         ("failed", "Failed"),
     ]
     amount = models.CharField(max_length=100)
+    # transaction_status = models.CharField(
+    #     max_length=100, default="pending"
+    # )
     transaction_status = models.CharField(
         max_length=100, choices=PAYMENT_STATUS_CHOICES, default="pending"
     )
