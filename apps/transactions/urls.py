@@ -17,5 +17,6 @@ urlpatterns = [
         views.TransactionsViewById.as_view(),
         name="peoplespay-transaction-status",
     ),
+    path("transactions/", views.TransactionsView.as_view()),
     path("token/", views.TokenView.as_view()),
 ]

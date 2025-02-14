@@ -11,6 +11,7 @@ from .serializers import (
     NameEnquirySerializer,
 )
 from .services import PeoplesPayService
+from django.core.paginator import Paginator, EmptyPage
 import requests
 import uuid
 
@@ -470,8 +471,10 @@ class TransactionsViewById(APIView):
             )
 
         data = peoplespay_response.json()
-        peoples_pay_status = data.get("status")
-        print(data.get("status"), data.get("message"), ":peoplespay response data")
+        print("PeoplesPay response data:", data)
+        peoples_pay_status = data.get("data", {}).get("status")
+        print("PeoplesPay status:", peoples_pay_status)
+
         # If status is pending, do not update local database
         if peoples_pay_status == "pending":
             return Response(
@@ -483,8 +486,8 @@ class TransactionsViewById(APIView):
                 status=status.HTTP_200_OK,
             )
 
-        # If status is "failed" or "paid", update local database
-        if peoples_pay_status in ["failed", "paid"]:
+        # status is "failed" or "paid", update local database
+        elif peoples_pay_status in ["failed", "paid"]:
             transaction.transaction_status = peoples_pay_status
             transaction.save()
             print(transaction, "transaction")
@@ -492,26 +495,82 @@ class TransactionsViewById(APIView):
                 {
                     "message": f"Transaction status updated to {peoples_pay_status}",
                     "transaction_id": transaction_id,
-                    "status": peoples_pay_status,
-                    # "peoplespay_data": data,
-                    "peoplespay_data_message": data.get("message"),
-                    "peoplespay_data_success": data.get("success"),
+                    "peoplespay_data_status": data.get("status"),
+                    # "status": peoples_pay_status,
+                    "peoplespay_data": data,
+                    # "peoplespay_data_message": data.get("message"),
                 },
                 status=status.HTTP_200_OK,
             )
+        else:
+            # Log unexpected status for debugging
+            print(f"Unexpected status from PeoplesPay: {peoples_pay_status}")
+            return Response(
+                {
+                    "message": f"Unknown status from PeoplesPay: {peoples_pay_status}",
+                    "transaction_id": transaction_id,
+                    "peoplespay_data": data,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        return Response(
-            {
-                "message": "Unknown status from PeoplesPay",
-                "transaction_id": transaction_id,
-                "status": peoples_pay_status,
-                # "peoplespay_data": data,
-                "peoplespay_data_message": data.get("message"),
-                "peoplespay_data_success": data.get("success"),
-                "peoplespay_data": data.get("status"),
-            },
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+# get 50 most recent transactions from collcections from local database
+class TransactionsView(APIView):
+    def get(self, request):
+        try:
+            # fetch transactions from the database filtered by created_at
+            transactions_data = Collections.objects.all().order_by("-created_at")
+            print(transactions_data, "transactions_data")
+
+            # paginate the transactions
+            page_number = request.query_params.get("page", 1)
+            page_size = request.query_params.get("page_size", 50)
+
+            # validate the page size, ensure they are positive integers
+            try:
+                page_size = int(page_size)
+                if page_size <= 0:
+                    raise ValueError("Page size must be a positive integer")
+            except ValueError as e:
+                page_size = 50 # fallback to default page size
+                print(f"Invalid page size: {e}")
+
+            paginator = Paginator(transactions_data, page_size)
+
+            try:
+                # get requested page
+                page_obj = paginator.page(page_number)
+            except EmptyPage:
+                return Response(
+                    {"error": "Page does not exist"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+            serialzer = CollectionsSerializer(page_obj, many=True)
+
+            # return paginated data
+            return Response(
+                {
+                    "message": "Transactions retrieved successfully",
+                    "data": serialzer.data,
+                    "pagination": {
+                        "current_page": page_obj.number,
+                        "total_pages": paginator.num_pages,
+                        "total_items": paginator.count,
+                        "page_size": page_size,
+                        "has_next": page_obj.has_next(),
+                        "has_previous": page_obj.has_previous(),
+                    },
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response(
+                {
+                    "error": f"An unexpected error occurred: {str(e)}"
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 # for updating payment status message

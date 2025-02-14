@@ -176,29 +176,30 @@ WSGI_APPLICATION = "config.wsgi.application"
 #     )
 # }
 
-if DJANGO_ENV == "production":
-    # PostgreSQL for production
-    DATABASES = {
-        "default": {
-            "ENGINE": env("MYSQL_ENGINE"),
-            "NAME": env("MYSQL_NAME"),
-            "USER": env("MYSQL_USER"),
-            "PASSWORD": env("MYSQL_PASSWORD"),
-            "HOST": env("MYSQL_HOST"),
-            "PORT": env("MYSQL_PORT"),
-        }
-    }
-else:
-    # SQLite for development
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": os.path.join(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                "db.sqlite3",
-            ),
-        }
-    }
+# if os.getenv("DJANGO_ENV") == "production":
+#     print("django_env:", env("DJANGO_ENV"))
+#     # MySQL for production
+#     DATABASES = {
+#         "default": {
+#             "ENGINE": env("MYSQL_ENGINE"),
+#             "NAME": env("MYSQL_NAME"),
+#             "USER": env("MYSQL_USER"),
+#             "PASSWORD": env("MYSQL_PASSWORD"),
+#             "HOST": env("MYSQL_HOST"),
+#             "PORT": env("MYSQL_PORT"),
+#         }
+#     }
+# else:
+#     # SQLite for development
+#     DATABASES = {
+#         "default": {
+#             "ENGINE": "django.db.backends.sqlite3",
+#             "NAME": os.path.join(
+#                 os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+#                 "db.sqlite3",
+#             ),
+#         }
+#     }
 
 # "default": {
         #     "ENGINE": "django.db.backends.postgresql",
@@ -210,16 +211,16 @@ else:
         # }
 
 
-# DATABASES = {
-#     "default": {
-#         "ENGINE": env("MYSQL_ENGINE"),
-#         "NAME": env("MYSQL_NAME"),
-#         "USER": env("MYSQL_USER"),
-#         "PASSWORD": env("MYSQL_PASSWORD"),
-#         "HOST": env("MYSQL_HOST"),
-#         "PORT": env("MYSQL_PORT"),
-#     }
-# }
+DATABASES = {
+    "default": {
+        "ENGINE": env("MYSQL_ENGINE"),
+        "NAME": env("MYSQL_NAME"),
+        "USER": env("MYSQL_USER"),
+        "PASSWORD": env("MYSQL_PASSWORD"),
+        "HOST": env("MYSQL_HOST"),
+        "PORT": env("MYSQL_PORT"),
+    }
+}
 
 
 # Password validation
