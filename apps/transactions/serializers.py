@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Payments, Collections, CollectionsCard
-from rest_framework.exceptions import ValidationError
+# from rest_framework.exceptions import ValidationError
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
@@ -16,18 +16,10 @@ class PaymentsSerializer(serializers.ModelSerializer):
 
 
 class CollectionsSerializer(serializers.ModelSerializer):
+    transaction_status = serializers.CharField(required=False)
     class Meta:
         model = Collections
-        fields = [
-            "transaction_id",
-            "amount",
-            "transaction_status",
-            "account_name",
-            "description",
-            "account_number",
-            "account_issuer",
-            "callbackUrl",
-        ]
+        fields = "__all__"
         extra_kwargs = {
             "amount": {"required": True},
             "account_name": {"required": True},

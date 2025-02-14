@@ -3,7 +3,7 @@ from urllib import request
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Payments, Collections, CollectionsCard
+from .models import Payments, Collections
 from .serializers import (
     PaymentsSerializer,
     CollectionsSerializer,
@@ -32,9 +32,9 @@ class PaymentsView(APIView):
     def post(self, request):
         payment_serializer = PaymentsSerializer(data=request.data)
         # Get the token using the PeoplesPayService from the .get_token() method
-        print(payment_serializer, f"payment serializer")
+        print(payment_serializer, "payment serializer")
         token = PeoplesPayService.get_token(operation="CREDIT")
-        print(token, f"token")
+        print(token, "token")
         if token is None:
             return Response(
                 {"message": "Failed to retrieve token"},
@@ -42,7 +42,7 @@ class PaymentsView(APIView):
             )
         if payment_serializer.is_valid():
             validated_data = payment_serializer.validated_data
-            print(validated_data, f"validated data")
+            print(validated_data, "validated data")
         # Disburse payment
         disburse_payload = {
             "amount": str(validated_data["amount"]),
@@ -56,7 +56,7 @@ class PaymentsView(APIView):
             "Content-Type": "application/json",
             "Authorization": f"Bearer {token['data']}",
         }
-        print(disburse_payload, f"Disburse payload")
+        print(disburse_payload, "Disburse payload")
 
         try:
             disburse_response = requests.post(
@@ -65,7 +65,7 @@ class PaymentsView(APIView):
                 headers=disburse_headers,
             )
             disburse_data = disburse_response.json()
-            print(disburse_data, f"disburse_data")
+            print(disburse_data, "disburse_data")
 
             if disburse_response.status_code == 200 and disburse_data.get("success"):
                 payment_serializer.save()  # Save payment record to the database
@@ -127,14 +127,14 @@ class CollectionsView(APIView):
             }
 
             try:
-                print(collection_payload, f"trying to send collection")
+                print(collection_payload, "trying to send collection")
                 collection_response = requests.post(
                     f"{PeoplesPayService.BASE_URL}/collectmoney",
                     json=collection_payload,
                     headers=collection_headers,
                 )
                 collection_data = collection_response.json()
-                print(collection_data, f"collection data")
+                print(collection_data, "collection data")
 
                 # extract the PeoplesPay ID if available in the response
                 transaction_id = collection_data.get("transactionId")
@@ -196,7 +196,7 @@ class CollectionsView(APIView):
 # Helper function to check peoples pay for payment status
 def check_peoplespay_status(transaction_id):
     url = f"{PeoplesPayService.BASE_URL}"
-    print(request, f"looking at peoplespay")
+    print(request, "looking at peoplespay")
     token = PeoplesPayService.get_token()
     headers = {
         "Content-Type": "application/json",
@@ -215,11 +215,10 @@ def check_peoplespay_status(transaction_id):
 
 class PaymentCallbackAPIView(APIView):
     def post(self, request):
-
         # Extract PeoplesPay transaction ID and success status from the request data
         transaction_id = request.data.get("transactionId")
 
-        payment_success = request.data.get("success")
+        # payment_success = request.data.get("success")
 
         # incoming data from PeoplesPay for debugging
         print("Incoming request data:", json.dumps(request.data, indent=4))
@@ -241,14 +240,14 @@ class PaymentCallbackAPIView(APIView):
 
         try:
             collection = Collections.objects.get(transaction_id=transaction_id)
-            print(collection, f"collection data")
+            print(collection, "collection data")
 
             # Update the transaction status based on the success value
-            if payment_success:
-                collection.transaction_status = "completed"
-            else:
-                collection.transaction_status = "failed"
-            collection.save()
+            # if payment_success:
+            #     collection.transaction_status = "completed"
+            # else:
+            #     collection.transaction_status = "failed"
+            # collection.save()
 
             # Return a response with updated information
             return Response(
@@ -281,12 +280,12 @@ class NameEnquiryView(APIView):
                 "account_number": data["account_number"],
                 "account_issuer": data["account_issuer"],
             }
-            print(enquiry_payload, f"enquiry payload")
+            print(enquiry_payload, "enquiry payload")
             headers = {
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {token['data']}",
             }
-            print(headers, f"headers")
+            print(headers, "headers")
             try:
                 response = requests.post(
                     f"{PeoplesPayService.BASE_URL}/enquiry",
@@ -294,7 +293,7 @@ class NameEnquiryView(APIView):
                     headers=headers,
                 )
                 response_data = response.json()
-                print(response_data, f"response data")
+                print(response_data, "response data")
                 if response.status_code == 200 and response_data.get("success"):
                     return Response(
                         {
@@ -432,6 +431,87 @@ class CardPaymentAPIView(APIView):
                 "Serializer is invalid. Errors:", card_serializer.errors
             )  # Debug serializer errors
             return Response(card_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# getting transaction status of a specific transaction from peoplespay
+class TransactionsViewById(APIView):
+    def get(self, request, transaction_id):
+        # Check if the transaction exists in the database
+        try:
+            transaction = Collections.objects.get(transaction_id=transaction_id)
+            print(transaction, "transaction")
+        except Collections.DoesNotExist:
+            return Response(
+                {"error": "Transaction not found in local database"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Get PeoplesPay token
+        token = PeoplesPayService.get_token()
+        print(token, ":token")
+        if not token:
+            return Response(
+                {"message": "Failed to retrieve token"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # PeoplesPay API URL
+        url = f"https://peoplespay.com.gh/peoplepay/transactions/get/{transaction_id}"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {token['data']}",
+        }
+
+        peoplespay_response = requests.get(url, headers=headers)
+        if peoplespay_response.status_code != 200:
+            return Response(
+                {"error": "Failed to retrieve transaction from PeoplesPay"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        data = peoplespay_response.json()
+        peoples_pay_status = data.get("status")
+        print(data.get("status"), data.get("message"), ":peoplespay response data")
+        # If status is pending, do not update local database
+        if peoples_pay_status == "pending":
+            return Response(
+                {
+                    "message": "Transaction is still pending",
+                    "transaction_id": transaction_id,
+                    "status": peoples_pay_status,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        # If status is "failed" or "paid", update local database
+        if peoples_pay_status in ["failed", "paid"]:
+            transaction.transaction_status = peoples_pay_status
+            transaction.save()
+            print(transaction, "transaction")
+            return Response(
+                {
+                    "message": f"Transaction status updated to {peoples_pay_status}",
+                    "transaction_id": transaction_id,
+                    "status": peoples_pay_status,
+                    # "peoplespay_data": data,
+                    "peoplespay_data_message": data.get("message"),
+                    "peoplespay_data_success": data.get("success"),
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        return Response(
+            {
+                "message": "Unknown status from PeoplesPay",
+                "transaction_id": transaction_id,
+                "status": peoples_pay_status,
+                # "peoplespay_data": data,
+                "peoplespay_data_message": data.get("message"),
+                "peoplespay_data_success": data.get("success"),
+                "peoplespay_data": data.get("status"),
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
 
 # for updating payment status message

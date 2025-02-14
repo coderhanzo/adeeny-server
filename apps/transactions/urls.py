@@ -12,5 +12,10 @@ urlpatterns = [
     ),
     path("name-enquiry/", views.NameEnquiryView.as_view()),
     path("card-payment/", views.CardPaymentAPIView.as_view()),
+    path(
+        "transaction/<str:transaction_id>/",
+        views.TransactionsViewById.as_view(),
+        name="peoplespay-transaction-status",
+    ),
     path("token/", views.TokenView.as_view()),
 ]
