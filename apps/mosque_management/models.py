@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
-from django.contrib.gis.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
 User = get_user_model()
@@ -62,8 +61,8 @@ class PrayerTime(models.Model):
         return self.title
 
 
-def upload_to(instance, filename):
-    return "mosque_sermons/{filename}".format(filename=filename)
+# def upload_to(instance, filename):
+#     return "mosque_sermons/{filename}".format(filename=filename)
 
 
 class Sermon(models.Model):

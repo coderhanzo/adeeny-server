@@ -1,16 +1,17 @@
+# from django.utils.translation import gettext_lazy as _
+# from django.utils import timezone
+# from djmoney.models.fields import MoneyField
+
 from django.db import models
-from django.utils.translation import gettext_lazy as _
-from django.utils import timezone
-from djmoney.models.fields import MoneyField
 from django.contrib.auth import get_user_model
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
-from hashlib import sha256
-import os
+# from hashlib import sha256
+# import os
 import uuid
 
-
+User = get_user_model()
 # this model will replace donations
 class Payments(models.Model):
     external_transaction_id = models.UUIDField(
@@ -39,17 +40,17 @@ class Collections(models.Model):
         ("vodafone", "vodafone"),
         ("AIRTELTIGO", "airteltigo"),
     )
-    PAYMENT_STATUS_CHOICES = [
-        ("pending", "Pending"),
-        ("completed", "Completed"),
-        ("failed", "Failed"),
-    ]
+    # PAYMENT_STATUS_CHOICES = [
+    #     ("pending", "Pending"),
+    #     ("completed", "Completed"),
+    #     ("failed", "Failed"),
+    # ]
     amount = models.CharField(max_length=100)
     # transaction_status = models.CharField(
     #     max_length=100, default="pending"
     # )
     transaction_status = models.CharField(
-        max_length=100, choices=PAYMENT_STATUS_CHOICES, default="pending"
+        max_length=100
     )
     account_name = models.CharField(max_length=100)
     account_number = models.CharField(max_length=100)

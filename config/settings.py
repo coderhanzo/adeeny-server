@@ -11,6 +11,8 @@ env = environ.Env(DEBUG=(bool, True))
 BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(BASE_DIR / ".env", overwrite=True)
 
+DJANGO_ENV = os.getenv("DJANGO_ENV", default="development")
+
 LOGS_DIR = os.path.join(BASE_DIR, "logs")
 
 if not os.path.exists(LOGS_DIR):
@@ -174,17 +176,50 @@ WSGI_APPLICATION = "config.wsgi.application"
 #     )
 # }
 
-
-DATABASES = {
-    "default": {
-        "ENGINE": env("MYSQL_ENGINE"),
-        "NAME": env("MYSQL_NAME"),
-        "USER": env("MYSQL_USER"),
-        "PASSWORD": env("MYSQL_PASSWORD"),
-        "HOST": env("MYSQL_HOST"),
-        "PORT": env("MYSQL_PORT"),
+if DJANGO_ENV == "production":
+    # PostgreSQL for production
+    DATABASES = {
+        "default": {
+            "ENGINE": env("MYSQL_ENGINE"),
+            "NAME": env("MYSQL_NAME"),
+            "USER": env("MYSQL_USER"),
+            "PASSWORD": env("MYSQL_PASSWORD"),
+            "HOST": env("MYSQL_HOST"),
+            "PORT": env("MYSQL_PORT"),
+        }
     }
-}
+else:
+    # SQLite for development
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": os.path.join(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                "db.sqlite3",
+            ),
+        }
+    }
+
+# "default": {
+        #     "ENGINE": "django.db.backends.postgresql",
+        #     "NAME": os.getenv("DB_NAME"),  # Database name (e.g., 'kwirkmart')
+        #     "USER": os.getenv("DB_USER"),  # Database user (e.g., 'myuser')
+        #     "PASSWORD": os.getenv("DB_PASSWORD"),  # Database password
+        #     "HOST": os.getenv("DB_HOST", "localhost"),  # Database host
+        #     "PORT": os.getenv("DB_PORT", "5432"),  # Database port
+        # }
+
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": env("MYSQL_ENGINE"),
+#         "NAME": env("MYSQL_NAME"),
+#         "USER": env("MYSQL_USER"),
+#         "PASSWORD": env("MYSQL_PASSWORD"),
+#         "HOST": env("MYSQL_HOST"),
+#         "PORT": env("MYSQL_PORT"),
+#     }
+# }
 
 
 # Password validation
