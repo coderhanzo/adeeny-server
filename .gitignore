@@ -9,6 +9,7 @@ commands.md
 /coverage
 
 .python-version
+poetry.lock
 pyproject.toml
 uv.lock
 
