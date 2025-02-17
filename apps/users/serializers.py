@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from rest_framework import serializers, viewsets, status
+from rest_framework import serializers
 from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
@@ -99,5 +99,18 @@ class TokenRefreshSerializer(serializers.Serializer):
             refresh.set_iat()
 
             data["refresh"] = str(refresh)
+
+        return data
+
+
+# reset password serializer
+class ResetPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField()
+    confirm_password = serializers.CharField()
+
+    def validate(self, data):
+        if data["password"] != data["confirm_password"]:
+            raise serializers.ValidationError({"password": "Passwords do not match"})
 
         return data

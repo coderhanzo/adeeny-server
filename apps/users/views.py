@@ -1,14 +1,14 @@
-from django.shortcuts import render
+# from django.shortcuts import render
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.core.mail import send_mail
 from django.conf import settings
 from django.db import transaction
 from rest_framework.views import APIView
-from django.utils.encoding import force_str
+# from django.utils.encoding import force_str
 from rest_framework.response import Response
 from rest_framework.decorators import (
     api_view,
@@ -18,8 +18,7 @@ from rest_framework.decorators import (
 )
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework import status, generics, permissions
-import requests
+from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -29,13 +28,12 @@ from djoser.compat import get_user_email
 from .serializers import TokenRefreshSerializer
 from django.contrib.auth import (
     authenticate,
-    login,
     logout,
 )
-from django.template.loader import render_to_string
-from .custom_permissions import IsAdmin, IsImam, IsAssociate, IsSuperAdmin
-from django.contrib.auth.models import Permission
-from django.utils.text import slugify
+# from django.template.loader import render_to_string
+# from .custom_permissions import IsAdmin, IsImam, IsAssociate, IsSuperAdmin
+# from django.contrib.auth.models import Permission
+# from django.utils.text import slugify
 
 User = get_user_model()
 
@@ -265,7 +263,7 @@ def get_logged_in_user(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 @authentication_classes([JWTAuthentication])
-def logout(request):
+def logout_view(request):
     drf_response = Response(status=status.HTTP_200_OK)
     drf_response.delete_cookie(settings.SIMPLE_JWT["AUTH_COOKIE"])
     return drf_response

@@ -323,21 +323,16 @@ DJOSER = {
     "USERNAME_CHANGED_EMAIL_CONFIRMATION": True,
     "PASSWORD_CHANGED_EMAIL_CONFIRMATION": True,
     "SEND_CONFIRMATION_EMAIL": True,
-    "PASSWORD_RESET_CONFIRM_URL": "password/reset/confirm/{uid}/{token}",
     "SET_PASSWORD_RETYPE": True,
     "PASSWORD_RESET_CONFIRM_RETYPE": True,
+    "PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND": True,
     "ACTIVATION_URL": "api/v1/auth/activate/{uid}/{token}",
+    "PASSWORD_RESET_CONFIRM_URL": "password/reset/confirm/{uid}/{token}",
     "SERIALIZERS": {
         "user_create": "apps.users.serializers.CreateUserSerializer",
         "user": "apps.users.serializers.UserSerializer",
         "current_user": "apps.users.serializers.UserSerializer",
         "user_delete": "djoser.serializers.UserDeleteSerializer",
-    },
-    "EMAIL": {
-        "activation": "apps.users.email.ActivationEmail",
-        # "confirmation": "apps.users.email.ConfirmationEmail",
-        "password_reset": "apps.users.email.PasswordResetEmail",
-        "password_changed_confirmation": "apps.templates.email.PasswordChangedConfirmationEmail",
     },
 }
 DOMAIN = env("DOMAIN")
