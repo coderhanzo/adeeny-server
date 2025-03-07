@@ -176,11 +176,11 @@ def get_all_users(request):
 @api_view(["POST"])
 @permission_classes([AllowAny])
 @transaction.atomic
-@parser_classes([MultiPartParser, FormParser])
+# @parser_classes([MultiPartParser, FormParser])
 def signup_view(request):
     """Register view for local authentication"""
     user_data = {
-        "profile_pic": request.data.get("profile_pic"),
+        # "profile_pic": request.data.get("profile_pic"),
         "first_name": request.data.get("first_name"),
         "other_name": request.data.get("other_name"),
         "last_name": request.data.get("last_name"),
@@ -243,7 +243,7 @@ def delete_user(request, id):
 
 class UpdateProfileView(APIView):
     permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
+    # parser_classes = [MultiPartParser, FormParser]
 
     def patch(self, request, *args, **kwargs):
         user = request.user

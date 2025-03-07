@@ -14,7 +14,7 @@ class CreateUserSerializer(UserCreateSerializer):
         model = User
         fields = [
             "id",
-            "profile_pic",
+            # "profile_pic",
             "email",
             "first_name",
             "other_name",
@@ -47,7 +47,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             "id",
-            "profile_pic",
+            # "profile_pic",
             "email",
             "first_name",
             "last_name",
@@ -73,7 +73,7 @@ class UserSerializer(serializers.ModelSerializer):
 class UpdateProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["profile_pic", "first_name", "other_name", "last_name"]
+        fields = ["first_name", "other_name", "last_name"] # "profile_pic",
 
 class TokenRefreshSerializer(serializers.Serializer):
     refresh = serializers.CharField()

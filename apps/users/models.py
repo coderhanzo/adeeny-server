@@ -24,13 +24,13 @@ class User(AbstractUser):
         ASSCOCIATE = "ASSOCIATE", _("Associate")
         USER = "USER", _("User")
 
-    profile_pic = models.ImageField(
-        _("Profile Picture"),
-        upload_to=upload_to,
-        blank=True,
-        null=True,
-        default="profile/default.jpg",
-    )
+    # profile_pic = models.ImageField(
+    #     _("Profile Picture"),
+    #     upload_to=upload_to,
+    #     blank=True,
+    #     null=True,
+    #     default="profile/default.jpg",
+    # )
     first_name = models.CharField(verbose_name=_("First Name"), max_length=250)
     last_name = models.CharField(verbose_name=_("Last Name"), max_length=250)
     other_name = models.CharField(
