@@ -3,10 +3,11 @@ from django.contrib.auth.models import AbstractUser
 from django.utils.translation import gettext_lazy as _
 from .managers import CustomUserManager
 from phonenumber_field.modelfields import PhoneNumberField
-from datetime import timedelta, datetime
+from datetime import timedelta
 from django.utils import timezone
-from django.core.exceptions import ValidationError
-import random, string
+# from django.core.exceptions import ValidationError
+import random
+import string
 
 # Create your models here
 
