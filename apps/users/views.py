@@ -198,12 +198,14 @@ def signup_view(request):
 
     if user:
         user.generate_otp_code()
+        print(f"Generated OTP: {user.otp_code}")  # Log the generated OTP for debugging
         send_mail(
             "Your OTP Code",
             f"Dear User, your OTP code is {user.otp_code}",
             settings.DEFAULT_FROM_EMAIL,
             [user.email],
         )
+        print(f"Sent OTP to: {user.email}")  # Log the email address to which the OTP was sent
         # If account creation successful, issue JWT token
         token = RefreshToken().for_user(user)
         response = Response(
