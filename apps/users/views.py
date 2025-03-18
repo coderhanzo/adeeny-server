@@ -197,8 +197,13 @@ def signup_view(request):
     user = serializer.save()
 
     if user:
-        user.generate_otp_code()
-        print(f"Generated OTP: {user.otp_code}")  # Log the generated OTP for debugging
+        # Generate OTP code if it doesn't exist
+        if not user.otp_code:
+            user.generate_otp_code()
+            print(f"Generated new OTP: {user.otp_code}")  # Log the generated OTP for debugging
+        else:
+            print(f"Using existing OTP: {user.otp_code}")  # Log the existing OTP for debugging
+
         send_mail(
             "Your OTP Code",
             f"Dear User, your OTP code is {user.otp_code}",
