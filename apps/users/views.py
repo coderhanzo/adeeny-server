@@ -91,7 +91,6 @@ def login_view(request):
             response = Response(
                 {
                     "access": str(token.access_token),
-                    "somemessage":user.email
                 }
             )
             response.set_cookie(
