@@ -1,26 +1,16 @@
-import magic
 from drf_extra_fields.fields import Base64FileField
-from django.core.exceptions import ValidationError
+import magic
 
-"""
-this will encode files to base64 and check mime. 
-used in serialisers not models
-"""
 
-class Base64File(Base64FileField):
-  ALLOWED_TYPES = ("pdf", "jpg", "jpeg", "png")
+class Base64Field(Base64FileField):
+    """
+    encodes Files as base 64 and checks mime
+    This is a custom field for DRF Serializers not for models
+    """
 
-  def get_file_extension(self, filename, decoded_file):
-    mime_type = magic.from_buffer(decoded_file, mime=True)
+    ALLOWED_TYPES = ["pdf", "jpg", "jpeg", "png"]
 
-    return mime_type.split("/")[1]
+    def get_file_extension(self, filename, decoded_file):
+        mime_type = magic.from_buffer(decoded_file, mime=True)
 
-def validate_image(image):
-  file_size = image.size
-  limit_mb = 2
-  if file_size > limit_mb * 1024 * 1024:
-    raise ValidationError(f"image size should be {limit_mb} MB or less")
-  valid_mime_type = ["image/jpeg","image/jpg","image/png","image/gif"]
-  file_mime_type = image.content_type
-  if file_mime_type not in valid_mime_type:
-    raise ValidationError(f"Unsupported format")
+        return mime_type.split("/")[-1]

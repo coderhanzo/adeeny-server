@@ -1,9 +1,12 @@
 from rest_framework import serializers
 from .models import Mosque, Sermon, Announcement
+from utils.utils import Base64Field
 
 
 class MosqueSerializer(serializers.ModelSerializer):
     is_liked = serializers.SerializerMethodField()
+    image = Base64Field(required=False)
+    certificate = Base64Field(required=False)
     class Meta:
         model = Mosque
         fields = "__all__"
