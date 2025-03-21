@@ -45,7 +45,7 @@ def delete_mosque(request, id):
         mosque.delete()
         return Response(
             {"message": "Mosque deleted successfully"},
-            status=status.HTTP_204_NO_CONTENT,
+            status=status.HTTP_200_OK,
         )
     except Mosque.DoesNotExist:
         return Response({"error": "Mosque not found"}, status=status.HTTP_404_NOT_FOUND)
