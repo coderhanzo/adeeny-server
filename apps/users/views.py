@@ -60,7 +60,6 @@ def refresh_token_view(request):
 
 
 @api_view(["POST"])
-# @permission_classes([AllowAny])
 @authentication_classes([JWTAuthentication])
 def login_view(request):
     """Login view for local authentication"""
@@ -81,7 +80,8 @@ def login_view(request):
                 [user.email],
             )
             return Response(
-                {"message": "OTP sent. Please check your email to verify."},
+                {"message": "OTP sent. Please check your email to verify.",
+                 "roles": user.roles,},
                 status=status.HTTP_200_OK,
             )
 
@@ -90,6 +90,9 @@ def login_view(request):
             token = RefreshToken.for_user(user)
             response = Response(
                 {
+                    "User": user.get_full_name,
+                    "roles": user.roles,
+                    "is_verified": user.is_verified,
                     "access": str(token.access_token),
                 }
             )
@@ -126,6 +129,8 @@ def verify_otp_view(request):
         token = RefreshToken.for_user(user)
         response = Response(
             {
+                "User": user.get_full_name,
+                "roles": user.roles,
                 "access": str(token.access_token),
             }
         )
