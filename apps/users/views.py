@@ -71,19 +71,19 @@ def login_view(request):
 
     if user is not None:
         # Check if the user is in a role that requires OTP
-        if user.roles in [User.Roles.ADMIN, User.Roles.IMAM, User.Roles.ASSCOCIATE]:
-            user.generate_otp_code()
-            send_mail(
-                "Your OTP Code",
-                f"Dear {user.get_full_name}, your OTP code is {user.otp_code}.",
-                settings.DEFAULT_FROM_EMAIL,
-                [user.email],
-            )
-            return Response(
-                {"message": "OTP sent. Please check your email to verify.",
-                 "roles": user.roles,},
-                status=status.HTTP_200_OK,
-            )
+        # if user.roles in [User.Roles.ADMIN, User.Roles.IMAM, User.Roles.ASSCOCIATE]:
+        #     user.generate_otp_code()
+        #     send_mail(
+        #         "Your OTP Code",
+        #         f"Dear {user.get_full_name}, your OTP code is {user.otp_code}.",
+        #         settings.DEFAULT_FROM_EMAIL,
+        #         [user.email],
+        #     )
+        #     return Response(
+        #         {"message": "OTP sent. Please check your email to verify.",
+        #          "roles": user.roles,},
+        #         status=status.HTTP_200_OK,
+        #     )
 
         # If the user is verified, generate a JWT token and log them in
         if user.is_verified and user.is_active:
